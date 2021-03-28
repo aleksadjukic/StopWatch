@@ -4,11 +4,13 @@
   "description": "A general knowledge quiz based on categories",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel src/index.html -p 8080"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "parcel-bundler": "^1.12.5"
+    "parcel-bundler": "^1.12.5",
+    "sass": "^1.32.8",
+    "typescript": "^4.2.3"
   }
 }

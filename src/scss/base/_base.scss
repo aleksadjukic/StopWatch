@@ -1,0 +1,19 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: "Poppins", Arial, Helvetica, sans-serif;
+	color: $dark;
+}
+
+body {
+	background-color: #e5e5f7;
+	opacity: 1;
+	background-image: radial-gradient(#444df728 1px, #fffffa 1px);
+	background-size: 20px 20px;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+}
