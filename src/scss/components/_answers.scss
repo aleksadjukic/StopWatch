@@ -1,0 +1,52 @@
+.answers {
+	width: 100%;
+	list-style: none;
+	margin: 0 auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-wrap: wrap;
+	background-color: $light;
+	border-radius: $radius;
+	box-shadow: $box-shadow;
+	padding: 0.5rem 0;
+	margin-top: 1rem;
+}
+
+.answer {
+	flex-basis: 40%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	align-self: center;
+	background-color: $primary;
+	border-radius: $radius;
+	padding: 0.8rem 0.2rem;
+	color: $light;
+	margin: 0.5rem 0.5rem;
+	min-height: 3.5rem;
+	font-size: 0.9rem;
+	transition: all 0.1s;
+	text-align: center;
+
+	&:hover {
+		cursor: pointer;
+		background-color: $primary;
+		color: $light;
+		transform: scale(1.05);
+	}
+
+	&.success,
+	&.success:hover {
+		background-color: $success;
+		color: $light;
+		transform: scale(1.08);
+	}
+
+	&.fail,
+	&.fail:hover {
+		background-color: $danger;
+		color: $light;
+		transform: scale(1);
+	}
+}

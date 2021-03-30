@@ -2,10 +2,16 @@
 @import "./vendors/normalize";
 
 // Base
+@import "./base/animations";
 @import "./base/variables";
 @import "./base/base";
+@import "./base/utils";
 
 // Components
 @import "./components/quiz";
 @import "./components/question";
-@import "./components/answer";
+@import "./components/answers";
+@import "./components/setup-form";
+@import "./components/select";
+@import "./components/help";
+@import "./components/final-screen";

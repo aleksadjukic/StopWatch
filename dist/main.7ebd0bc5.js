@@ -117,9 +117,539 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"js/main.ts":[function(require,module,exports) {
+})({"js/classes/Quiz.ts":[function(require,module,exports) {
+"use strict";
 
-},{}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Quiz = void 0;
+
+var Quiz =
+/** @class */
+function () {
+  function Quiz(questionsList) {
+    var _this = this;
+
+    this.questionsList = questionsList;
+    this.shuffledQuestions = this.questionsList.sort(function () {
+      return 0.5 - Math.random();
+    });
+    this.quizQuestions = [];
+    this.questionsIterator = 0;
+    this.questionsCount = 6;
+    this.score = 0;
+    this.answerClickCount = 0;
+    this.timeLeft = 20;
+    this.helpLeft = 1;
+    this.disabledHelpOnClick = false;
+    this.userResults = []; // HTML Elements
+
+    this.quizEl = document.querySelector(".quiz");
+    this.quizScoreEl = document.querySelector(".quiz-score"); // Question text element
+
+    this.questionTextEl = document.createElement("p");
+    this.questionsCountEl = document.createElement("span");
+    this.questionsStopWatchEl = document.createElement("span"); // Help Elements
+
+    this.helpRemoveQuestionsEl = document.createElement("div"); // Audio Elements
+
+    this.audioCorrect = document.querySelector("#audio-correct");
+    this.audioWrong = document.querySelector("#audio-wrong");
+    this.audioCountdown = document.querySelector("#audio-countdown");
+
+    this.getQuestionsByCategory = function (questions, category) {
+      if (category.toLowerCase() !== "all") {
+        var filtered = questions.filter(function (question) {
+          return question.category === category.toLowerCase();
+        });
+        return filtered;
+      }
+
+      return questions;
+    };
+
+    this.renderStartScreen = function () {
+      var startScreenInstructions = document.createElement("div");
+      startScreenInstructions.classList.add("setup-instructions");
+      startScreenInstructions.innerHTML = "\n      <h2>Instructions</h2>\n      <p>\n      You have <strong>20 seconds</strong> to answer each question. If you don't, you will get forwarded to the next question without getting a point.\n      </p>\n    ";
+      var startScreenForm = document.createElement("form");
+      startScreenForm.classList.add("setup-form");
+      startScreenForm.innerHTML = "<h2>Quiz Setup</h2>";
+      startScreenForm.removeAttribute("action");
+      startScreenForm.removeAttribute("method");
+      startScreenForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var countSelect = document.querySelector(".setup-form__count-select");
+        var categorySelect = document.querySelector(".setup-form__category-select");
+        var count = countSelect.options[countSelect.options.selectedIndex].value;
+        _this.questionsCount = parseInt(count);
+        var category = categorySelect.options[categorySelect.options.selectedIndex].value;
+        _this.quizQuestions = _this.getQuestionsByCategory(_this.shuffledQuestions, category).slice(0, _this.questionsCount);
+
+        _this.questionGenerator();
+      });
+
+      var questionsCountSelect = _this.createSelect("setup-form__count-select", "Questions count", ["5", "10"]);
+
+      var questionsCategorySelect = _this.createSelect("setup-form__category-select", "Questions category", ["All", "Entertainment", "Geography"]);
+
+      var playBtn = document.createElement("button");
+      playBtn.classList.add("setup-form__button");
+      playBtn.setAttribute("type", "submit");
+      playBtn.innerText = "Play";
+      startScreenForm.appendChild(questionsCountSelect);
+      startScreenForm.appendChild(questionsCategorySelect);
+      startScreenForm.appendChild(playBtn);
+
+      _this.quizEl.appendChild(startScreenInstructions);
+
+      _this.quizEl.appendChild(startScreenForm);
+    };
+
+    this.countdown = function () {
+      _this.countdownInterval = setInterval(function () {
+        if (_this.timeLeft == 1) {
+          _this.audioWrong.play();
+
+          clearInterval(_this.countdownInterval);
+          _this.timeLeft = 21;
+
+          _this.questionGenerator();
+        }
+
+        if (_this.timeLeft <= 11) {
+          _this.questionsStopWatchEl.classList.add("question__stopwatch--danger");
+        }
+
+        var countdownSoundInterval = setInterval(function () {
+          if (_this.timeLeft == 1) {
+            clearInterval(countdownSoundInterval);
+          }
+
+          if (_this.timeLeft <= 10) {
+            _this.audioCountdown.play();
+          }
+        }, 1000);
+        _this.timeLeft--;
+        _this.questionsStopWatchEl.innerText = "" + _this.timeLeft;
+      }, 1000);
+    };
+
+    this.questionGenerator = function () {
+      _this.disabledHelpOnClick = false;
+
+      _this.questionsStopWatchEl.classList.remove("question__stopwatch--danger");
+
+      _this.answerClickCount = 0;
+      _this.currQuestion = _this.quizQuestions[_this.questionsIterator];
+      _this.questionsIterator++;
+
+      if (_this.currQuestion !== undefined) {
+        _this.renderQuestion();
+
+        _this.countdown();
+
+        return _this.currQuestion;
+      }
+
+      _this.renderFinalScreen();
+    };
+
+    this.renderQuestion = function () {
+      _this.questionTextEl.classList.add("question");
+
+      _this.questionTextEl.innerText = _this.currQuestion.content;
+
+      _this.questionsCountEl.classList.add("question__count");
+
+      _this.questionsCountEl.innerText = _this.questionsIterator + " of " + _this.questionsCount;
+
+      _this.questionsStopWatchEl.classList.add("question__stopwatch");
+
+      _this.questionsStopWatchEl.innerText = "" + _this.timeLeft;
+
+      _this.questionTextEl.appendChild(_this.questionsCountEl);
+
+      _this.questionTextEl.appendChild(_this.questionsStopWatchEl); // Answers container element
+
+
+      var answersEl = document.createElement("ul");
+      answersEl.classList.add("answers"); // Add the answer options to the answers element
+
+      var answerOptions = [_this.currQuestion.a, _this.currQuestion.b, _this.currQuestion.c, _this.currQuestion.d];
+      answerOptions.forEach(function (option) {
+        // Create and modify answer li element
+        var answerEl = document.createElement("li");
+        answerEl.classList.add("answer");
+        answerEl.innerText = option;
+        answerEl.setAttribute("answer", option);
+        answerEl.addEventListener("click", function () {
+          _this.answer(answerEl, answerEl.innerText);
+        });
+        answersEl.appendChild(answerEl);
+      });
+      _this.quizEl.innerHTML = "";
+
+      _this.quizEl.appendChild(_this.questionTextEl); // Help
+
+
+      _this.helpRemoveQuestionsEl.innerText = "50/50";
+
+      _this.helpRemoveQuestionsEl.classList.add("help__button");
+
+      _this.helpRemoveQuestionsEl.addEventListener("click", function () {
+        _this.useHelpRemoveQuestions();
+
+        if (_this.disabledHelpOnClick === false) {
+          _this.helpRemoveQuestionsEl.classList.add("help__button--disabled");
+        }
+      });
+
+      _this.quizEl.appendChild(_this.helpRemoveQuestionsEl);
+
+      _this.quizEl.appendChild(answersEl);
+    };
+
+    this.answer = function (answerEl, answer) {
+      _this.disabledHelpOnClick = true;
+
+      if (_this.answerClickCount === 0) {
+        clearInterval(_this.countdownInterval);
+        _this.timeLeft = 20; // If answer is correct, increment score by 1, then generate next question
+
+        if (answer === _this.currQuestion.correct) {
+          _this.audioCorrect.play();
+
+          answerEl.classList.add("success");
+          _this.score++;
+        } else {
+          _this.audioWrong.play();
+
+          var correctAnswer = document.querySelector("[answer=\"" + _this.currQuestion.correct + "\"]");
+          answerEl.classList.add("fail");
+          correctAnswer.classList.add("success");
+        }
+
+        setTimeout(function () {
+          _this.questionGenerator();
+        }, 2000);
+        _this.answerClickCount++;
+      } else {
+        _this.answerClickCount++;
+        return;
+      }
+    };
+
+    this.renderFinalScreen = function () {
+      var finalScreen = document.createElement("div");
+      var userLeaderboard = document.createElement("div");
+      finalScreen.classList.add("final-screen");
+
+      if (_this.score === _this.questionsCount) {
+        finalScreen.innerHTML = "\n      <h2>You are awesome!</h2>\n      <p>You got all the questions right!</p>\n      <p> You can be proud of yourself.</p>\n      <p>Score: " + _this.score + " out of " + _this.questionsCount + "</p>\n    ";
+      } else if (_this.score > _this.questionsCount / 2) {
+        finalScreen.innerHTML = "\n       <h2>Not Bad!</h2>\n       <p>Score: " + _this.score + " out of " + _this.questionsCount + "</p>\n      ";
+      } else {
+        finalScreen.innerHTML = "\n       <h2>Gotta do better!</h2>\n       <p>Score: " + _this.score + " out of " + _this.questionsCount + "</p>\n      ";
+      } // Add the result to the local storage
+
+
+      _this.userResults.push(_this.score);
+
+      localStorage.setItem("userResults", JSON.stringify(_this.userResults));
+      var userResultsFromLocalStorage = JSON.parse(localStorage.getItem("userResults"));
+      userResultsFromLocalStorage.forEach(function (res) {
+        var result = document.createElement("p");
+        result.innerHTML = "\n        <p></p>\n      ";
+        userLeaderboard.appendChild(result);
+      });
+      finalScreen.appendChild(userLeaderboard);
+      _this.quizEl.innerHTML = "";
+
+      _this.quizEl.appendChild(finalScreen);
+    };
+
+    this.createSelect = function (className, label, countOptions) {
+      var selectContainerEl = document.createElement("div");
+      selectContainerEl.classList.add("setup-form__group");
+      var selectLabelEl = document.createElement("label");
+      selectLabelEl.innerText = label;
+      var selectEl = document.createElement("select");
+      selectEl.setAttribute("class", className);
+      countOptions.forEach(function (count) {
+        var countOptionEl = document.createElement("option");
+        countOptionEl.innerText = count;
+        countOptionEl.setAttribute("name", count);
+        selectEl.appendChild(countOptionEl);
+      });
+      selectContainerEl.appendChild(selectLabelEl);
+      selectContainerEl.appendChild(selectEl);
+      return selectContainerEl;
+    };
+
+    this.renderStartScreen();
+  }
+
+  Quiz.prototype.useHelpRemoveQuestions = function () {
+    if (this.helpLeft == 0 || this.disabledHelpOnClick == true) {
+      return;
+    } else {
+      var answerOptions = [this.currQuestion.a, this.currQuestion.b, this.currQuestion.c, this.currQuestion.d];
+      var randomAnswer1 = answerOptions[Math.floor(Math.random() * answerOptions.length)];
+      var randomAnswer2 = answerOptions[Math.floor(Math.random() * answerOptions.length)];
+
+      if (randomAnswer1 === this.currQuestion.correct) {
+        return this.useHelpRemoveQuestions();
+      }
+
+      var removeAnswer1 = document.querySelector("[answer=\"" + randomAnswer1 + "\"]");
+
+      if (randomAnswer2 === this.currQuestion.correct || randomAnswer1 === randomAnswer2) {
+        return this.useHelpRemoveQuestions();
+      }
+
+      var removeAnswer2 = document.querySelector("[answer=\"" + randomAnswer2 + "\"]");
+      removeAnswer1.classList.add("help__answer-removed");
+      removeAnswer2.classList.add("help__answer-removed");
+      this.helpLeft--;
+    }
+  };
+
+  return Quiz;
+}();
+
+exports.Quiz = Quiz;
+},{}],"js/data/questions.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.questions = void 0;
+var questions = [{
+  category: "entertainment",
+  content: "Who is the main actor in Shutter Island?",
+  correct: "Leonardo diCaprio",
+  a: "Leonardo diCaprio",
+  b: "Antonio Banderas",
+  c: "George Clooney",
+  d: "Tom Cruise"
+}, {
+  category: "entertainment",
+  content: "What is the name of the movie that has both Seth Rogen and James Franco as leading roles?",
+  correct: "The Interview",
+  a: "Now You See Me",
+  b: "The Interview",
+  c: "Good Boys",
+  d: "Green Book"
+}, {
+  category: "entertainment",
+  content: "What is Spider-Man's name?",
+  correct: "Peter Parker",
+  a: "Clark Kent",
+  b: "Bruce Wayne",
+  c: "John Russel",
+  d: "Peter Parker"
+}, {
+  category: "entertainment",
+  content: "What year was The Wolf Of Wall Street released in?",
+  correct: "2013",
+  a: "2013",
+  b: "2010",
+  c: "2012",
+  d: "2015"
+}, {
+  category: "entertainment",
+  content: "In which of these movies does Justin Timberlake act?",
+  correct: "The Social Network",
+  a: "Inception",
+  b: "No Strings Attached",
+  c: "What Happens In Vegas",
+  d: "The Social Network"
+}, {
+  category: "entertainment",
+  content: "Who played the Joker in The Dark Night?",
+  correct: "Heath Ledger",
+  a: "Jared Leto",
+  b: "Heath Ledger",
+  c: "John Travolta",
+  d: "Tom Hardy"
+}, {
+  category: "entertainment",
+  content: "'Crazy in Love' was the first solo No. 1 for which singer?",
+  correct: "Beyonce",
+  a: "Jennifer Lopez",
+  b: "Beyonce",
+  c: "Shakira",
+  d: "Ariana Grande"
+}, {
+  category: "entertainment",
+  content: "Which band recorded the theme song to Friends?",
+  correct: "The Rembrandts",
+  a: "Beatles",
+  b: "The Rembrandts",
+  c: "Green Day",
+  d: "R.E.M."
+}, {
+  category: "entertainment",
+  content: "What is Eminem's real name?",
+  correct: "Marshall Mathers",
+  a: "Mark Foley",
+  b: "Marshall Mathers",
+  c: "Kyle Clarkson",
+  d: "Nick Darwin"
+}, {
+  category: "entertainment",
+  content: "Which prison did Johnny Cash famously sing about in his 1955 song?",
+  correct: "Folsom Prison",
+  a: "Folsom Prison",
+  b: "Guantanamo Bay",
+  c: "San Quentin",
+  d: "Alcatraz"
+}, {
+  category: "geography",
+  content: "What is the largest country in the world?",
+  correct: "Russia",
+  a: "China",
+  b: "Russia",
+  c: "Saudi Arabia",
+  d: "India"
+}, {
+  category: "geography",
+  content: "What is the capital of Brazil?",
+  correct: "Brasilia",
+  a: "Rio de Janeiro",
+  b: "Sao Paulo",
+  c: "Brasilia",
+  d: "Recife"
+}, {
+  category: "geography",
+  content: "What is the smallest country in the world?",
+  correct: "Vatican",
+  a: "Andorra",
+  b: "San Marino",
+  c: "Luxembourg",
+  d: "Vatican"
+}, {
+  category: "geography",
+  content: "What is the deepest ocean in the world?",
+  correct: "Pacific",
+  a: "Antarctic",
+  b: "Pacific",
+  c: "Atlantic",
+  d: "Indian"
+}, {
+  category: "geography",
+  content: "What is the largest continent in the world?",
+  correct: "Asia",
+  a: "North America",
+  b: "Asia",
+  c: "Europe",
+  d: "Australia"
+}, {
+  category: "geography",
+  content: "What river flows through Paris?",
+  correct: "Seine",
+  a: "Seine",
+  b: "Danube",
+  c: "Volga",
+  d: "Elbe"
+}, {
+  category: "geography",
+  content: "Havana is the capital of what country?",
+  correct: "Cuba",
+  a: "Honduras",
+  b: "Cuba",
+  c: "Costa Rica",
+  d: "Colombia"
+}, {
+  category: "geography",
+  content: "Riyadh is the capital city of which Arab nation?",
+  correct: "Saudi Arabia",
+  a: "Saudi Arabia",
+  b: "Oman",
+  c: "Yemen",
+  d: "Qatar"
+}, {
+  category: "geography",
+  content: "What is the official language of the Canadian province Quebec?",
+  correct: "French",
+  a: "English",
+  b: "French",
+  c: "Spanish",
+  d: "Italian"
+}, {
+  category: "geography",
+  content: "What is the only major city located on two continents?",
+  correct: "Istanbul",
+  a: "Moscow",
+  b: "Paris",
+  c: "Istanbul",
+  d: "Tokyo"
+}, {
+  category: "geography",
+  content: "What is the capital city of Poland?",
+  correct: "Warsaw",
+  a: "Warsaw",
+  b: "Poznan",
+  c: "Krakow",
+  d: "Gdansk"
+}, {
+  category: "geography",
+  content: "Which Turkish city shares its name with a famous superhero?",
+  correct: "Batman",
+  a: "Superman",
+  b: "Batman",
+  c: "Wolverine",
+  d: "Aquaman"
+}, {
+  category: "geography",
+  content: "What is the biggest city in Africa by population?",
+  correct: "Lagos",
+  a: "Cape Town",
+  b: "Freetown",
+  c: "Abidjan",
+  d: "Lagos"
+}, {
+  category: "geography",
+  content: "Machu Picchu can be found in which country?",
+  correct: "Peru",
+  a: "Chile",
+  b: "Peru",
+  c: "Colombia",
+  d: "Ecuador"
+}, {
+  category: "geography",
+  content: "The Grand Canyon can be found in which US state?",
+  correct: "Arizona",
+  a: "Arizona",
+  b: "Colorado",
+  c: "California",
+  d: "Nevada"
+}, {
+  category: "geography",
+  content: "The Grand Canyon can be found in which US state?",
+  correct: "Arizona",
+  a: "Arizona",
+  b: "Colorado",
+  c: "California",
+  d: "Nevada"
+}];
+exports.questions = questions;
+},{}],"js/main.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Quiz_1 = require("./classes/Quiz");
+
+var questions_1 = require("./data/questions");
+
+new Quiz_1.Quiz(questions_1.questions);
+},{"./classes/Quiz":"js/classes/Quiz.ts","./data/questions":"js/data/questions.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -147,7 +677,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "4701" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "4150" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

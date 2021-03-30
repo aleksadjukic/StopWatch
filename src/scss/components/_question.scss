@@ -1,0 +1,61 @@
+.question {
+	box-shadow: $box-shadow;
+	display: flex;
+	align-items: center;
+	margin: 0 2rem 2.5rem 2rem;
+	font-size: 1.3rem;
+	background-color: $secondary;
+	color: $dark;
+	border-radius: $radius;
+	padding: 3rem 1rem;
+	position: relative;
+	text-align: center;
+
+	&::before {
+		content: "?";
+		position: absolute;
+		top: -4rem;
+		right: 1rem;
+		transform: rotate(15deg);
+		color: $dark;
+		font-size: 5rem;
+	}
+	&::after {
+		content: "?";
+		position: absolute;
+		top: -3rem;
+		right: -1rem;
+		transform: rotate(35deg);
+		color: $dark;
+		font-size: 4.6rem;
+	}
+
+	&__stopwatch {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: $dark;
+		color: $light;
+		border-radius: 50%;
+		padding: 0.8rem 4rem;
+		box-shadow: $box-shadow;
+		&--danger {
+			color: $danger;
+			animation: shakeTimer 0.3s linear infinite;
+			font-weight: bold;
+		}
+	}
+	&__count {
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translate(-50%, 50%);
+
+		background-color: $light;
+		color: $primary;
+		border-radius: $radius;
+		padding: 0.4rem 2rem;
+		box-shadow: $box-shadow;
+	}
+}

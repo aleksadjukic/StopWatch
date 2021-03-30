@@ -1,0 +1,9 @@
+@keyframes shakeTimer {
+	from {
+		transform: translate(-49%, -50%) rotate(-2deg);
+	}
+
+	to {
+		transform: translate(-51%, -50%) rotate(2deg);
+	}
+}

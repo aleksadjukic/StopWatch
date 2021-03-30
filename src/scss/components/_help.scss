@@ -1,0 +1,35 @@
+.help {
+	&__button {
+		margin: 0 0 0.25rem 0;
+		font-size: 1.1rem;
+		color: $light;
+		background-color: $dark;
+		padding: 0.5rem 1rem;
+		border-radius: $radius;
+		cursor: pointer;
+		transition: all 0.3s;
+
+		&:hover {
+			cursor: pointer;
+			background-color: $dark;
+			color: $light;
+			transform: scaleX(1.03) scaleY(1.15);
+		}
+
+		&--disabled {
+			cursor: initial;
+			background-color: $grey;
+      
+			&:hover {
+				cursor: initial;
+				background-color: $grey;
+        transform: scaleX(1.03) scaleY(1.15);
+			}
+		}
+	}
+
+	&__answer-removed {
+		visibility: hidden;
+		pointer-events: none;
+	}
+}
