@@ -4,7 +4,8 @@
   "description": "A general knowledge quiz based on categories",
   "main": "main.js",
   "scripts": {
-    "start": "parcel src/index.html -p 8080"
+    "start": "parcel src/index.html -p 8080",
+    "build": "parcel build src/index.html"
   },
   "author": "",
   "license": "ISC",
